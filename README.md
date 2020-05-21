@@ -7,7 +7,7 @@ Make queries to databases (MySQL, MS SQL or whatever) from a Beckhoff-PLC throug
 
 ## Content
 * PLC-Program in Codesys 3
-* Script in python (comming soon)
+* Script in python
 
 ## Python dependencies
 ```bash

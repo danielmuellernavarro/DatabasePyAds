@@ -1,0 +1,35 @@
+{
+    "AdsVar": {
+        "version": "DatabasePyAds.sVersion",
+        "versionLenght": "DatabasePyAds.diStringLength",
+
+        "execute": "DatabasePyAds.bExecute",
+        "done": "DatabasePyAds.bDone",
+        "error": "DatabasePyAds.bError",
+        "busy": "DatabasePyAds.bBusy",
+        "config": "DatabasePyAds.stConfig",
+
+        "request": "DatabasePyAds.saRequest",
+        "requestLength": "DatabasePyAds.diMaxStringLength",
+        "requestSize": "DatabasePyAds.diUBoundRequestArray",
+
+        "rowCount": "DatabasePyAds.diRows",
+        "columnCount": "DatabasePyAds.diColumns",
+
+        "columnsName": "DatabasePyAds.saColumnsName",
+        "columnsNameLenght": "DatabasePyAds.diStringLength",
+        "columnsNameSize": "DatabasePyAds.diMaxColumns",
+
+        "tableValues": "DatabasePyAds.saTableValues",
+        "tableValuesLenght": "DatabasePyAds.diMaxStringLength",
+        "tableValuesRowsSize": "DatabasePyAds.diMaxRows",
+        "tableValuesColumnsSize": "DatabasePyAds.diMaxColumns",
+
+        "sError": "DatabasePyAds.sError",
+        "errorLenght": "DatabasePyAds.diMaxStringLength"
+    },
+    "logging": {
+        "level": 20,
+        "log_in_files": false
+    }
+}
