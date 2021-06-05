@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.2">
+  <DUT Name="ST_Config" Id="{b9eab82b-13ec-4ad9-a9e3-9bc5603aad4d}">
+    <Declaration><![CDATA[TYPE ST_Config:
+  STRUCT
+    sLocalAmsNetId: T_AmsNetId;
+    sMachineName  : STRING(20) := 'L123';
+    nMachineId    : UINT       := 999;
+    sPlcIP        : T_IPv4Addr;
+    sLanguage     : STRING(20) := 'default';
+  END_STRUCT
+END_TYPE]]></Declaration>
+  </DUT>
+</TcPlcObject>

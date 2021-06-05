@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.2">
+  <DUT Name="ST_LogData" Id="{293d680b-f29d-4b8c-ab2f-da3841baa15a}">
+    <Declaration><![CDATA[TYPE ST_LogData:
+  STRUCT
+    bExecute: BOOL;
+    sMsg    : STRING(MAX_STRING_LENGTH);
+    sStation: STRING(20);
+    nUserId : UDINT;
+    eLogType: E_LogType;
+  END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

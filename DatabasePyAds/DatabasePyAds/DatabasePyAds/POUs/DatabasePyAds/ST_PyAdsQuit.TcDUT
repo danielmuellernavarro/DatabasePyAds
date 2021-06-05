@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.2">
+  <DUT Name="ST_PyAdsQuit" Id="{57ee0c64-6e94-48bc-adf5-6e0f80c38c1d}">
+    <Declaration><![CDATA[TYPE ST_PyAdsQuit:
+  STRUCT
+    bDone : BOOL;
+    bError: BOOL;
+  END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

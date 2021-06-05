@@ -13,10 +13,8 @@ Make queries to databases (MySQL, MS SQL or whatever) from a Beckhoff-PLC throug
 ```bash
 $ pip install pyads
 $ pip install pyodbc
-$ pip install mysqlclient
+$ pip install mysql-connector-python
 ```
-
-or get MySQL from [https://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python](https://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python)
 
 ## Related repositories
 * [PyAds](https://github.com/stlehmann/pyads)

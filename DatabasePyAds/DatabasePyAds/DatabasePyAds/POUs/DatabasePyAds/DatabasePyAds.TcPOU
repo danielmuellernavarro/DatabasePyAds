@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.2">
+  <POU Name="DatabasePyAds" Id="{1cdff17f-8c9d-44d9-9179-6800118b6805}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM DatabasePyAds
+VAR_INPUT
+  bGetTest: BOOL;
+  stLog  : ST_LogData;
+END_VAR
+VAR_OUTPUT
+  stGetTestQuit: ST_PyAdsQuit;
+  stLogQuit: ST_PyAdsQuit;  
+END_VAR
+VAR
+  bExecute: BOOL;
+  bDone   : BOOL;
+  bBusy   : BOOL;
+  bError  : BOOL;
+  stConfig: ST_PyAdsConfig;
+
+  diRows       : DINT;
+  diColumns    : DINT;
+  saRequest    : ARRAY[1..cUBoundRequestArray] OF STRING(cMaxStringLength);
+  saColumnsName: ARRAY[1..cMaxColumns] OF STRING(cStringLength);
+  saTableValues: ARRAY[1..cMaxRows, 1..cMaxColumns] OF STRING(cMaxStringLength);
+  sError       : STRING(cMaxStringLength);
+  sVersion     : STRING(cStringLength);
+
+  tonTimeout       : TON := (PT := T#60S);
+  nState, nSubState: INT;
+  i                : INT;
+  _iReq            : INT;
+  iStateBranch     : INT;
+    bWithAnswer : BOOL;
+  
+END_VAR
+
+VAR CONSTANT
+  cMaxRows           : UDINT := 200;
+  cMaxColumns        : UDINT := 30;
+  cStringLength      : UDINT := 80;
+  cMaxStringLength   : UDINT := MAX_STRING_LENGTH;
+  cUBoundRequestArray: UDINT := 20;
+
+  // Databases
+  stDbMySql: ST_PyAdsConfig := (sDatabase := 'test',
+    sTypeDatabase                         := 'mysql',
+    sHost                                 := '192.168.1.7',
+    sUser                                 := 'test',
+    sPassword                             := 'test');
+  stDbMySql2: ST_PyAdsConfig := (sDatabase := 'test2',
+    sTypeDatabase                          := 'mysql',
+    sHost                                  := '192.168.1.7',
+    sUser                                  := 'test',
+    sPassword                              := 'test');
+  stDbMssql: ST_PyAdsConfig := (sDatabase := 'test',
+    sTypeDatabase                         := 'mssql',
+    sHost                                 := '192.168.1.250',
+    sUser                                 := 'test',
+    sPassword                             := 'test');
+
+  cReset  : INT := 0;
+  cInitial: INT := 1;
+  cTest   : INT := 10;
+  cLog    : INT := 100;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+  cReset:
+    stConfig := stDbMssql; (* default database *)
+    nState   := cInitial;
+
+  cInitial:
+    IF bBusy THEN
+      ;
+    ELSIF bGetTest THEN
+      nState := cTest;
+    ELSIF stLog.bExecute THEN
+      stConfig := stDbMySql2;
+      nState   := cLog;
+    END_IF
+
+    IF nState > cInitial THEN
+      tonTimeout(IN := FALSE);
+      nSubState := 0;
+      bDone     := FALSE;
+      bError    := FALSE;
+      // clean strings
+      MEMSET(ADR(saRequest), 0, SIZEOF(saRequest));
+      MEMSET(ADR(saColumnsName), 0, SIZEOF(saColumnsName));
+      MEMSET(ADR(saTableValues), 0, SIZEOF(saTableValues));
+      MEMSET(ADR(sError), 0, SIZEOF(sError));
+    END_IF
+
+  cTest:
+    stGetTestQuit := GetTest(bRunQuery := bGetTest);
+  cLog:
+    stLogQuit := SetLog(stRunQuery := stLog);
+
+END_CASE;]]></ST>
+    </Implementation>
+    <Method Name="_ResetStates" Id="{4e8c3cba-f9c8-43d1-a1c9-4553fd28101f}">
+      <Declaration><![CDATA[METHOD PRIVATE _ResetStates
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nState := cReset;
+nSubState := cReset;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_Timeout" Id="{ef401a4b-2817-48ff-9d63-a810109ce3ed}">
+      <Declaration><![CDATA[METHOD PRIVATE _Timeout: BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF tonTimeout.Q THEN
+	_ResetStates();
+	bError := TRUE;
+	bExecute := FALSE;
+END_IF
+IF NOT bBusy THEN
+	tonTimeout(IN := TRUE);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetTest" Id="{fc489204-4cf2-4e3b-a31e-be85d2fc4c4a}">
+      <Declaration><![CDATA[METHOD PRIVATE GetTest: ST_PyAdsQuit
+VAR_IN_OUT
+	bRunQuery: BOOL;
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nSubState OF
+0:
+	iReq := 1;
+	saRequest[iReq] := 'SELECT leit_set_log';
+	saRequest[iReq] := ' (';
+	saRequest[iReq] := '1';
+	saRequest[iReq] := ',';
+	saRequest[iReq] := INT_TO_STRING(stLog.eLogType);
+	saRequest[iReq] := ',"';
+	saRequest[iReq] := stLog.sStation;
+	saRequest[iReq] := '","';
+	saRequest[iReq] := stLog.sMsg;
+	saRequest[iReq] := '")';
+
+	bWithAnswer := TRUE;
+	bExecute := TRUE;
+	nSubState := nSubState + 1;
+1:
+	IF NOT bExecute THEN
+		nSubState := nSubState + 1;
+	END_IF
+2:
+	IF bDone OR bError THEN
+		IF bError THEN
+      FOR i := 1 TO DINT_TO_INT(diRows) DO
+				// log
+			END_FOR
+		END_IF		
+		bRunQuery := FALSE;
+		_ResetStates();
+	END_IF
+END_CASE
+
+IF _Timeout() THEN
+	bRunQuery := FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="iReq" Id="{f7cc8f22-187e-42fb-82be-200ffd1cac57}">
+      <Declaration><![CDATA[{attribute ‘monitoring’:=’variable’}
+PROPERTY iReq : INT]]></Declaration>
+      <Get Name="Get" Id="{60c5d6c9-4399-46ff-afd4-78e46f3ba248}">
+        <Declaration><![CDATA[VAR
+  _iReq: INT;
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[iReq := _iReq;
+_iReq := iReq + 1;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{d443a819-2caf-41bf-bbe1-c433bae49c93}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_iReq := iReq;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="SetLog" Id="{09b915a1-0939-4035-bb3a-abf6f686ae35}">
+      <Declaration><![CDATA[METHOD PRIVATE SetLog: ST_PyAdsQuit
+VAR_IN_OUT
+	stRunQuery: ST_LogData;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nSubState OF
+0:
+	iReq := 1;
+	saRequest[iReq] := 'SELECT leit_set_log';
+	saRequest[iReq] := ' (';
+	saRequest[iReq] := '1';
+	saRequest[iReq] := ',';
+	saRequest[iReq] := INT_TO_STRING(stRunQuery.eLogType);
+	saRequest[iReq] := ',"';
+	saRequest[iReq] := stRunQuery.sStation;
+	saRequest[iReq] := '","';
+	saRequest[iReq] := stRunQuery.sMsg;
+	saRequest[iReq] := '")';
+
+	bWithAnswer := TRUE;
+	bExecute := TRUE;
+	nSubState := nSubState + 1;
+1:
+	IF NOT bExecute THEN
+		nSubState := nSubState + 1;
+	END_IF
+2:
+	IF bDone OR bError THEN
+		IF bError THEN
+      FOR i := 1 TO DINT_TO_INT(diRows) DO
+				// log
+			END_FOR
+		END_IF		
+		stRunQuery.bExecute := FALSE;
+		_ResetStates();
+	END_IF
+END_CASE
+
+IF _Timeout() THEN
+	stRunQuery.bExecute := FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="DatabasePyAds">
+      <LineId Id="5675" Count="31" />
+      <LineId Id="4782" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabasePyAds._ResetStates">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabasePyAds._Timeout">
+      <LineId Id="7" Count="0" />
+      <LineId Id="9" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabasePyAds.GetTest">
+      <LineId Id="56" Count="23" />
+      <LineId Id="93" Count="1" />
+      <LineId Id="82" Count="9" />
+      <LineId Id="50" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabasePyAds.iReq.Get">
+      <LineId Id="5" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabasePyAds.iReq.Set">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="DatabasePyAds.SetLog">
+      <LineId Id="149" Count="23" />
+      <LineId Id="192" Count="1" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="177" Count="8" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
